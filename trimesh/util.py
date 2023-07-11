@@ -2426,6 +2426,75 @@ def is_ccw(points, return_all=False):
     return ccw, area, centroid
 
 
+def unique_name_glb(start, contains, multiple_primitives, counts=None):
+    """
+    Deterministically generate a unique name not
+    contained in a dict, set or other grouping with
+    `__includes__` defined. Will create names of the
+    form "start_10" and increment accordingly.
+
+    Parameters
+    -----------
+    start : str
+      Initial guess for name.
+    contains : dict, set, or list
+      Bundle of existing names we can *not* use.
+    counts : None or dict
+      Maps name starts encountered before to increments in
+      order to speed up finding a unique name as otherwise
+      it potentially has to iterate through all of contains.
+      Should map to "how many times has this `start`
+      been attempted, i.e. `counts[start]: int`.
+      Note that this *will be mutated* in-place by this function!
+
+    Returns
+    ---------
+    unique : str
+      A name that is not contained in `contains`
+    """
+    # exit early if name is not in bundle
+    should_print = True
+    if (start is not None and
+        len(start) > 0 and
+            not multiple_primitives):
+            return start
+
+    # start checking with zero index unless found
+    if counts is None:
+        increment = 0
+    else:
+        increment = counts.get(start, 0)
+    if start is not None and len(start) > 0:
+        formatter = start + '-{}'
+        # Cody: this is getting messed up with assimp naming convention
+        # split by our delimiter once
+        # split = start.rsplit('_', 1)
+        # if len(split) == 2 and increment == 0:
+        #     try:
+        #         # start incrementing from the existing
+        #         # trailing value
+        #         # if it is not an integer this will fail
+        #         increment = int(split[1])
+        #         # include the first split value
+        #         formatter = split[0] + '_{}'
+        #     except BaseException:
+        #         pass
+    else:
+        formatter = 'geometry-{}'
+
+    # if contains is empty we will only need to check once
+    for i in range(increment, 1 + increment + len(contains)):
+        check = formatter.format(i)
+        if check not in contains:
+            if counts is not None:
+                counts[start] = i
+            return check
+
+    # this should really never happen since we looped
+    # through the full length of contains
+    raise ValueError('Unable to establish unique name!')
+
+
 def unique_name(start, contains, counts=None):
     """
     Deterministically generate a unique name not

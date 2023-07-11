@@ -18,7 +18,7 @@ from .. import rendering
 from .. import resources
 from .. import transformations
 
-from ..util import unique_name
+from ..util import unique_name, unique_name_glb
 from ..caching import hash_fast
 from ..constants import log, tol
 
@@ -1440,7 +1440,7 @@ def _read_buffers(header,
                 # create a unique mesh name per- primitive
                 name = m.get('name', 'GLTF')
                 # make name unique across multiple meshes
-                name = unique_name(name, meshes, counts=name_counts)
+                name = unique_name_glb(name, meshes, len(m["primitives"]) > 1, counts=name_counts)
 
                 if mode == _GL_LINES:
                     # load GL_LINES into a Path object
